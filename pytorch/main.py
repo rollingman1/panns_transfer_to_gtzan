@@ -18,7 +18,7 @@ from losses import get_loss_func
 from pytorch_utils import move_data_to_device, do_mixup
 from utilities import (create_folder, get_filename, create_logging, StatisticsContainer, Mixup)
 from data_generator import GtzanDataset, TrainSampler, EvaluateSampler, collate_fn
-from models import Transfer_Cnn14
+from models import (Transfer_Cnn14, Cnn14_DecisionLevelMax_Transfer)
 from evaluate import Evaluator
 
 
@@ -167,7 +167,7 @@ def train(args):
                 train_bgn_time = time.time()
 
         # Save model 
-        if iteration % 2000 == 0 and iteration > 0:
+        if iteration % 1000 == 0 and iteration > 0:
             checkpoint = {
                 'iteration': iteration, 
                 'model': model.module.state_dict()}

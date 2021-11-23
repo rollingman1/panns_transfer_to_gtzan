@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import datetime
 import pickle
 import numpy as np
+from scipy import stats
 import csv
 import h5py
 
@@ -31,8 +32,9 @@ def traverse_folder(fd):
     for root, dirs, files in os.walk(fd):
         for name in files:
             filepath = os.path.join(root, name)
-            names.append(name)
-            paths.append(filepath)
+            if filepath.split(".")[-1] == 'wav':
+                names.append(name)
+                paths.append(filepath)
 
     return names, paths
 
@@ -79,6 +81,10 @@ def float32_to_int16(x):
 
 def int16_to_float32(x):
     return (x / 32767.).astype(np.float32)
+
+def d_prime(auc):
+    d_prime = stats.norm().ppf(auc) * np.sqrt(2.0)
+    return d_prime
 
 
 class StatisticsContainer(object):
