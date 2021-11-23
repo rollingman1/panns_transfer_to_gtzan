@@ -32,7 +32,7 @@ from losses import get_loss_func
 from pytorch_utils import move_data_to_device, do_mixup
 from utilities import (create_folder, get_filename, create_logging, StatisticsContainer, Mixup)
 from data_generator import GtzanDataset, TrainSampler, EvaluateSampler, collate_fn
-from models import Transfer_Cnn14
+from models import (Transfer_Cnn14, Cnn14_DecisionLevelMax_Transfer)
 from evaluate import Evaluator
 
 
@@ -92,7 +92,7 @@ def audio_tagging(args):
     sorted_indexes = np.argsort(clipwise_output)[::-1]
 
     # Print audio tagging top probabilities
-    for k in range(10):
+    for k in range(5):
         print('{}: {:.3f}'.format(np.array(labels)[sorted_indexes[k]],
                                   clipwise_output[sorted_indexes[k]]))
 
@@ -165,17 +165,25 @@ def sound_event_detection(args):
 
     sorted_indexes = np.argsort(np.max(framewise_output, axis=0))[::-1]
 
-    top_k = 10  # Show top results
+    top_k = 5  # Show top results classnum보다 작아야함
     top_result_mat = framewise_output[:, sorted_indexes[0: top_k]]
+    top_1_result_mat = top_result_mat.copy()
+
+    for idx, frame in enumerate(top_1_result_mat):
+        max_index = frame.argmax()
+        frame[:] = [0]*len(frame)
+        frame[max_index] = 1
+
     print('top result mat', top_result_mat)
     print('frame number', len(top_result_mat))
     for idx, frame in enumerate(top_result_mat):
-        if idx % (frames_per_second//2) == 0:
-            if frame[frame.argmax()] > 0.03:
-                print('frame_label', idx/frames_per_second, np.array(labels)[sorted_indexes[0: top_k]][frame.argmax()])
+        if idx % (frames_per_second // 2) == 0:
+            if frame[frame.argmax()] > 0.03: # threshold
+                print('frame_label', idx / frames_per_second,
+                      np.array(labels)[sorted_indexes[0: top_k]][frame.argmax()])
             else:
                 print('frame_label', 'None')
-    print(np.array(labels)[sorted_indexes[0: top_k]])
+    print(np.array(labels)[sorted_indexes[0: top_k]].shape)
     """(time_steps, top_k)"""
 
     # Plot result    
@@ -183,7 +191,7 @@ def sound_event_detection(args):
                              hop_length=hop_size, window='hann', center=True)
     frames_num = stft.shape[-1]
 
-    fig, axs = plt.subplots(2, 1, sharex=True, figsize=(10, 4))
+    fig, axs = plt.subplots(3, 1, sharex=True, figsize=(10, 5))
     axs[0].matshow(np.log(np.abs(stft)), origin='lower', aspect='auto', cmap='jet')
     axs[0].set_ylabel('Frequency bins')
     axs[0].set_title('Log spectrogram')
@@ -195,6 +203,9 @@ def sound_event_detection(args):
     axs[1].yaxis.grid(color='k', linestyle='solid', linewidth=0.3, alpha=0.3)
     axs[1].set_xlabel('Seconds')
     axs[1].xaxis.set_ticks_position('bottom')
+    axs[2].matshow(top_1_result_mat.T, origin='upper', aspect='auto', cmap='jet', vmin=0, vmax=1)
+    axs[2].yaxis.set_ticks(np.arange(0, top_k))
+    axs[2].yaxis.set_ticklabels(np.array(labels)[sorted_indexes[0: top_k]])
 
     plt.tight_layout()
     plt.savefig(fig_path)

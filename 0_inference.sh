@@ -15,9 +15,8 @@ python3 pytorch/inference.py audio_tagging \
     --cuda
 
 # ------ Inference sound event detection result with pretrained model. ------
-MODEL_TYPE="Transfer_Cnn14"
-CHECKPOINT_PATH="/home/pepeotalk/panns_transfer_to_gtzan/checkpoints/main/holdout_fold=1/Transfer_Cnn14/pretrain=True/loss_type=clip_nll/augmentation=mixup/batch_size=32/freeze_base=False/10000_iterations.pth"
-
+MODEL_TYPE="Cnn14_DecisionLevelMax_Transfer"
+CHECKPOINT_PATH="/home/pepeotalk/panns_transfer_to_gtzan/checkpoints/main/holdout_fold=1/Cnn14_DecisionLevelMax_Transfer/pretrain=True/loss_type=clip_bce/augmentation=mixup/batch_size=32/freeze_base=False/10000_iterations.pth"
 # Download sound event detection checkpoint.
 # wget -O $CHECKPOINT_PATH "https://zenodo.org/record/3987831/files/Cnn14_DecisionLevelMax_mAP%3D0.385.pth?download=1"
 
