@@ -84,7 +84,12 @@ def audio_tagging(args):
         batch_output_dict = model(waveform, None)
         print('batch_output_dict\n', batch_output_dict)
 
-    clipwise_output = np.exp(batch_output_dict['clipwise_output'].data.cpu().numpy()[0])
+    if model_type == 'Transfer_Cnn14':
+        clipwise_output = np.exp(batch_output_dict['clipwise_output'].data.cpu().numpy()[0])
+    elif model_type == 'Cnn14_DecisionLevelMax_Transfer':
+        clipwise_output = batch_output_dict['clipwise_output'].data.cpu().numpy()[0]
+
+
     """(classes_num,)"""
 
     print('clipwise_output:\n', clipwise_output)
