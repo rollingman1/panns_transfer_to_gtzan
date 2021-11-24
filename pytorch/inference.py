@@ -35,6 +35,8 @@ from data_generator import GtzanDataset, TrainSampler, EvaluateSampler, collate_
 from models import (Transfer_Cnn14, Cnn14_DecisionLevelMax_Transfer)
 from evaluate import Evaluator
 
+import pandas as pd
+
 
 def audio_tagging(args):
     """Inference audio tagging result of an audio clip.
@@ -97,6 +99,9 @@ def audio_tagging(args):
     sorted_indexes = np.argsort(clipwise_output)[::-1]
 
     # Print audio tagging top probabilities
+    print(np.array(labels))
+    max_index = clipwise_output.argmax()
+    print(max_index)
     for k in range(5):
         print('{}: {:.3f}'.format(np.array(labels)[sorted_indexes[k]],
                                   clipwise_output[sorted_indexes[k]]))
@@ -105,6 +110,19 @@ def audio_tagging(args):
     if 'embedding' in batch_output_dict.keys():
         embedding = batch_output_dict['embedding'].data.cpu().numpy()[0]
         print('embedding: {}'.format(embedding.shape))
+
+    detection_info = [[audio_path, np.array(labels)[max_index],
+                      str(clipwise_output[4]), str(clipwise_output[1]),
+                      str(clipwise_output[3]), str(clipwise_output[2]),
+                      str(clipwise_output[0])]]
+    print(detection_info)
+    # ['negative', 'growling', 'whining', 'howling', 'barking'
+
+    column_list = ["file", "prediction", "class_negative", "class_growling", "class_whining", "class_howling",
+                   "class_barking"]
+    barking_df = pd.DataFrame(detection_info, columns=column_list)
+    barking_df.to_csv(audio_path[:-4]+'.csv')
+    print(audio_path[:-4]+'.csv')
 
     return clipwise_output, labels
 
